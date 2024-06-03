@@ -1,0 +1,400 @@
+string.lcfirst：将string的第一个字符小写
+Rider：双击shifit打开查找文件窗口
+护眼色：C7EDCC
+cmd命令： cd到指定路径 —— cd /d d:\test
+文字间突然增加空格： shift + 空格
+
+Prefab之间的对应关系：
+1.把做好的子prefab拷贝一份副本prefabB放到本地目录得到PrefabB_Copy，，此时建立的是副本与本地目录之间的关系
+  与原有的子prefab之间没有任何关联，因此在原有的子prefab上的所有改动都不会体现到PrefabB_Copy中
+2.在做好子prefab后，如果在其父类的prefab中点击了“Apply”则无法再将该做好的子prefab作为独立个体来拖动到
+  本地目录中。只能将该子prefab拷贝一份副本，然后将该副本拖到本地目录 —— 这样建立副本和本地目录的关联。
+  此时该子prefab和本地目录是没有关联的。
+  所以需要将该做好的子prefab删除掉，然后重新将本地目录中的prefab拖到父类的prefab下，这样就建立了本地目录
+  和该子prefab的关联 —— 这样其实是创建一个新的GameObject，重新建立其与本地目录的区别
+3.将子prefab做好后，直接拖到本地目录，此时建立的是子prefab和本地目录的关联。
+  此时如果将本地目录的prefab删除掉，那么该prefab中与其他子 子 prefab之间的关联也会丢失掉，
+  所以慎重删除本地目录下的prefab，会丢失掉很多关联关系。
+
+
+Button点击的操作基础：
+按钮相应点击是建立在实物基础上，Button只是对这个实物在被点击时做出相应的处理，也就是说Button负责的是逻辑处理
+但是如果实物本身无法响应点击，那么任何button逻辑都是没用的。
+所以当为实物添加上Button脚本后，该实物必须自身能够响应点击，即Raycast Target需要打开
+
+
+滑动条：
+把一张slice格式的水平滑动条，用来作为fill格式的进度条使用，边缘位置会虚化，这样可以配合mask和同一图片的
+slice格式来组合，得到边缘没有虚化的进度条效果
+
+自动的执行方式：
+local __eventId = 0
+local __NewEventId = function()
+    __eventId = __eventId + 1
+    return __eventId
+end
+
+EventDef.GameState.OnBeforeEnterState = __NewEventId()
+
+当调用EventDef.GameState.OnBeforeEnterState时，“__NewEventId()”会直接执行
+function RedPointClockInRewardCondition:GetSubEvents()
+	return {
+		EventDef.ClockIn.OnClockInDataUpdated
+	}
+end
+
+
+
+
+
+UI Empty Graphic：这个脚本很实用，可以记录下
+Drag UI Event Dispatcher：这个脚本也很实用，可以记录下
+DoTween动画很实用，需要记录下
+
+
+
+后续还要再看的点：
+1.UIBasePanel中的Binding -> HandleBinding 中的红点逻辑，以及TransformExtend，
+   和节点布局ReorderElement, ReorderChildren
+2.UIManager中的CreatePanelByGameObject ->__open_panel 这个“hide会改变原有的UI层次关系”还要再看下
+3.UIBasePanel中的Close方法中的具体内容还要再看
+4.MailWindow中CreateListItem中在CreatePanelByGameObject后得到的panel，直接使用SetClickHandler
+   来设置这个item panel的点击处理，这个后续要再看下，为什么没有在item panel自身的lua脚本中处理点击
+5.当点击邮件或者删除所有已读邮件时，有一个DispatchEvent的方法，这个还要再看下，不同点击消息分发不同
+6.客户端处理掉落的逻辑还要再看——》MailModule->PickAllMail->HandleClientDropReward，这个估计比较重要
+7.MailWindow中FetchNextRangeOfDataThenInsertAtTheEndOfList ->layoutGroup:ReplaceItem ，这个布局调整
+  还要再看
+8.UIManager中的CreatePanel， __create_panel方法还要再看下，里面有socket.gettime， 
+   keepAlive的使用等逻辑要注意
+   还有个RecyclePanel逻辑——在MailDetailDialog领取附件后会触发
+
+9.在创建Attachment列表时使用的ClientItemSubPanel是一个通用结构，ClientItemSubPanel下面还有
+  一个通用的GoodsSubPanel结构
+
+10.封装好的通用结构UI Poolable Grid Layout Group等，有个OnItemEnabled方法的具体执行时机，这个要再看
+
+11.table.values这个方法的详情还要再仔细看下—— PackageModule中的GetItemsByType -> table.values(self.packages[itemType])
+    GoodsFilterByPackageGroupType  这个一定要再看
+
+12.每一个脚本中使用Event添加监听的，在销毁时的注销监听时机要看下
+
+13.UI Text Image脚本中会自动鉴别该image是否需要本地化图片，直接拖动带文字的图片是无法正确赋值的，
+    加载时会根据当前语言设置加载对应后缀的image文件！
+
+14.Character Image Group 这个脚本的细节要看下，重点！！
+
+15.class.lua是所有lua脚本的基类，container都是在class的基础上创建出来的，在container默认添加了return container语句，
+    所以其他UIBasePanel等都不需要单独加return语句即可得到对应的panel
+    
+
+17.将对象延时几帧，通常是在动画播放的时候：
+    local delayTime = (self.tachieItemCount + 1) * Time.fixedDeltaTime * 2
+    local slot = ParameterizedSlot(self, self.PlayItem, panel)
+    panel:DelayCall(delayTime, slot)
+
+18.在总结LayoutRebuilder.ForceRebuildLayoutImmediate时把SetSiblingIndex设置UI的显示顺序也加上
+
+
+Logger.Info(AppDef.LogTag.Hangup, "xxx {0}", data)
+string.format("%02d", self.clockData.day) —— Lua中原本的string.format支持占位符等特殊格式的string拼接
+                                                               —— 比string.formatex支持的格式要多些，但缺点在于需要根据参数类型使用“%d, %s，%f”等
+string.formatex("ID：{0}", self.uid)   —— 使用StringEx进行了封装，所以支持"{0}"的格式
+
+
+if判断语句的简写方式：
+local stringProgress = allExp <= curExp and kProgressFull or kProgressNotFull
+判空语句的简写方式：return result and true or false  —— result可能为number或者false，
+                                最后的返回值一定是boolean值，不会返回number值
+
+连续判断结果为true/false：
+local isRecv =true
+for i = 1, 100 do
+     isRecv = isRecv and self.data[i].status == kRecvStatus.Received
+end
+
+又有一个示例：
+isCheck = isCheck == nil and true or isCheck
+-- 未设置isCheck或者设置isCheck为true都会自动检测一次
+if isCheck then
+    redPoint:Check(args)
+end
+
+
+把数据放入table中：
+table.merge(self.details, details)
+过滤：gs = table.pick(gs, filter)
+排序：table.sort(gs, sorter)
+
+如果为空的写法：
+for _, systemId in ipairs(user.systemOpenList or kEmptyTable) do
+     table.insert(self.systemOpenList, systemId)
+end
+
+检查表中是否有该元素：当表有可能为nil时需要增加后面的“kEmptyTable”
+if not table.indexof(self.systemOpenIds or kEmptyTable, config.SystemID) then
+     table.insert(self.systemUnopenedConfigs, config)
+end
+对于table.indexof获得到结果：当table中没有该元素时则返回false，当有该元素时则返回元素下标
+local result = table.indexof(self.systemOpenIds or kEmptyTable, systemId)
+if not result then.....        —— 则当成boolean值来使用
+if result then                  —— 这里直接当成判空的数值来使用，如果为元素下标，则这里可以直接使用
+                                     —— 实例：在SystemOpenModule中“过滤未开放系统配置”
+
+所有基类为UIBasePanel的界面在关闭或销毁时，都是使用：
+sq.facade:GetUIManager():RecyclePanel(uiBasePanel)
+创建panel时：
+self.textNotification = sq.facade:GetUIManager():CreatePanel("TextNotification", { desc = msg })    -- 参数会在OnOpen时传递过去
+self.textNotification:PlaceToParent(self.transform)
+还有：
+self.systemOpenPreviewStatePanel = sq.facade:GetUIManager():CreatePanel("SystemOpenPreviewBattleStatePanel", funcOpenItem)
+self.systemOpenPreviewStatePanel:PlaceToParent(self.panelContainer)
+self.systemOpenPreviewStatePanel.transform:SetSiblingIndex(0)
+
+--获得当前玩家所在关卡
+local stageId = self.dungeonModule:GetArriveStageId()
+
+Vector2,Vector3的使用：
+pos = Vector2(-3, -17),
+rotation = Vector3(0, 0, 45)
+
+Lua中多变量同时赋值：
+
+lua中使用字典类似的方式赋值：
+self.screenLimitEdge = { xMin = xInterval, xMax = Screen.width - xInterval,
+                                     yMin = yInterval, yMax = Screen.height - yInterval} 
+local colorTable = {
+[1] = "blue",
+[2] = "red",
+[3] = "yellow",
+[4] = "green",
+[5] = "purple"
+}
+
+local colorTable = {
+"blue",
+"red",
+"yellow",
+"green",
+"purple"
+}
+具体可以查看链接：https://www.cnblogs.com/ttss/articles/4162297.html
+
+lua中if...elseif...else...end结构：
+if n < 0x80 then
+	x = string.char(n % 0x80)
+elseif n < 0x800 then
+	-- [110x xxxx] [10xx xxxx]
+	x = string.char(0xC0 + (math.floor(n/64) % 0x20), 0x80 + (n % 0x40))
+else
+	-- [1110 xxxx] [10xx xxxx] [10xx xxxx]
+	x = string.char(0xE0 + (math.floor(n/4096) % 0x10), 0x80 + (math.floor(n/64) % 0x40), 0x80 + (n % 0x40))
+end
+
+
+使用for遍历或者递归调用某方法时，最好将该遍历内部声明的local变量在用完后destroy掉，尤其是如果该变量还是
+使用lua脚本创建的，这样可以释放一部分内存占用
+如：
+for _, conditionType in ipairs(self.conditionGroup) do
+       local condition = RedPointConditionFactory.CreateCondition(conditionType)
+       local r = condition:Check(args)
+       condition:Destroy()
+end
+
+对于添加事件监听时：sq.facade:GetEventDispatcher():AddEventListener
+调用该方法后会返回一个EventExecutor的编号，这个编号是随着当前系统中所有事件的总数来递增的
+这个编号在注销监听时会根据编号来查找，然后注销
+
+
+在Panel中增加帧update的更新操作：    —— 可在”TowerDefenseMonsterBornPanel -》StartUpdate“中看到
+self.updateHandle = self:AddUpdateListener(Slot(self, self.OnUpdate))
+
+
+
+gitlab中代码的注释说明：Activity ->Comments页面
+
+
+
+问题：UIBasePanel -》HandleBinding
+if not self[cname] and cfg.redPointConfId then
+     -- 找到当前路径的上一级
+     local parentTransform = self.transform:Find(Path.GetFilePath(cpath))
+end
+redPoint.name = Path.GetFileName(cpath)
+直接根据路径就能知道当前文件的父级目录和文件的name
+根据路径直接获取到文件的name：
+local guessName = Path.GetFileNameWithoutExtension(cpath)
+cname = string.lcfirst(guessName)
+
+assert可以直接的返回某个非空的对象：  —— UIBasePanel-》HandleImageBinding
+if cfg.bindComponent then
+        self[name] = assert(controller:GetComponent(typeof(UIImage)), "No UIImage component. name: %s", name)
+end
+当UI上有UIImage组件时，assert可以直接将UIImage组件返回给self[name]
+
+
+
+
+使用readonly修饰的变量是无法被序列化的，即使声明为public也不会在inspector面板中显示出来
+公有化变量默认都会被序列化，对于私有化变量则需要使用serilizeField来序列化
+[HideInInspector]
+可以使一个公有的变量在Inspector面板中隐藏起来
+[SerializeField]
+可以使一个私有的变量在Inspector面板中显示出来
+
+
+
+
+
+
+
+Odin: 
+PropetyOrder如果没有写，则默认是从1开始，按照各个变量的顺序依次递增，如果要把某个变量直接置顶，
+那么可以只在这个变量前添加"PropertyOrder(-1)"  —— 可以查看"Essentials->Show In Inspector"中的”Static Inspectors“
+然后”Numbers->Property Range“也可以看到”PropertyOrder“的使用
+
+
+多行显示的区域：
+[TextArea(10, 15)]
+public string msg;
+或者：  在Essentials -> Hide Label中
+[MultiLineProperty]
+public string textField = "";       
+或者[Multiline] —— 在Groups -> Toggle Group中第三个
+[[MultiLineProperty]]在filed和property都可以使用 —— 在Type Specifics-》Multi Line Property中可以查到
+
+可以自定义InfoMessageType的类型为none, info, warning,error等
+这个应该也同样适用于InfoBox
+可以详细看"Validate Input"模块
+
+修改当前scene场景中的视角：
+[ShowInInspector]
+[EnumPaging, OnValueChanged("SetCurrentTool")]
+[InfoBox("Changing this property will change the current selected tool in the Unity editor.")]
+private UnityEditor.Tool sceneTool;
+
+private void SetCurrentTool()
+{
+    UnityEditor.Tools.current = this.sceneTool;
+}
+
+枚举中如果选中该所有的选项：  具体 可查看"Buttons -> Enum Toggle Buttons"
+public enum SomeBitmaskEnum
+{
+    A,
+    B,
+    C,
+    D = A | B | C
+} 
+
+当声明一个enum变量时并不需要借助EnumPaging，即可达到dropdown下拉列表那种效果
+使用EnumPaging主要是除了可以下拉，还可以翻页的那种效果。—— 直接看“Collections -> Dictionary Drawer Settings”就可以知道
+
+List设置每页显示的最多item数量： 详情查看：Collcections -> List Drawer Settings
+[ListDrawerSettings(NumberOfItemsPerpage = 5)]
+public int[] fiveItemsPerPage;  
+
+显示集合中各个元素的下标index： [ShowIndexLabels = true]
+以元素的某个属性值作为区别各个item的标识：[ListElementLabelName = "SomeString"]  —— “SomeString”是item中的某个属性，以其值作为区分每个item的标识
+获取集合中的元素数量等操作：[ListDrawerSettings(OnTitleBarGUI = "DrawRefreshButton")]
+
+任何结构中如果使用”HideLabel“针对的是子对象的元素不显示label，对集合本身的label是没有影响的——可看”Groups ->Box Group“最后的”BoxedStruct“
+但是以上是针对当前对象为集合的情况。
+如果该对象本身为某个对象struct或者class类型的对象，虽然其内部依然包含有多个字段，如int，string等
+但这个是属于该struct或class对象自身的。从集合的角度看，这里只有一个对象。
+此时，”HideLabel“是对自身的label起效的。—— 可查看”Groups -> Tab Group“
+
+限制Vector3中每个元素的值都在0以上：   —— 可查看”Numbers-》MaxValue“
+[MinValue(0)]
+public Vector3 num;
+限制最大值：
+[MaxValue(0)]
+public Vector3 num2;  
+
+将进度条Progress Bar以片段的形式展现出来： —— Numbers -> Progress Bar
+[ProgressBar(0, 10, 颜色占三位，Segmented = true)]
+public int progressValue = 5;
+此时展现的效果：会将0-10一共分成10个segment，然后每个segment都是指定的颜色，由于当前progressValue = 5
+因此只有5个segment会填充颜色
+还可以指定progressBar随着进度使用不同的颜色 ——》可以查看"Numbers -> progress Bar"，就在这个segment下面的”colorMember“里
+
+让数值在某个范围内循环变化，如从0-100，当数值为100时会自动变成0，101即变成1， -1自动变成99.
+这样限制数值在某个范围内循环变化  —— 可查看”Numbers->Wrap“
+
+
+Type Specifics:
+AssetSelector：在为指定参数赋值时，可使用AssetSelector来指定资源的路径，或者filter过滤器(包含name, type, label)
+只能在child GameObject或者自身上赋值，[ChildGameObjectOnly]
+
+File Path：使用file path限定文件路径，可以设置[ParentFolder = ”Assets/Plugins/Sirenix“]
+注意：这里的路径默认情况下是本项目下的相对路径，如果需要使用绝对路径则需要设定[AbsolutePath = true]
+也可以设置扩展”[Extensions = "cs"]“，多个扩展之间用”,“间隔     —— 可查看”Type Specifics ->File Path“
+[RequireExistingPath = true]：则当路径为空时会有错误提示
+
+Preview Field：在选中某个GameObject后可以直接看到该GameObject的缩略图，否则只是为这个变量赋值，看不到赋值后大概的样子了
+
+
+使用”[EnableIf]“可以设定只有在某些特定情况下某些filed或者property才可以被修改  —— 可以在”Type Specifics->Toggle Left“中看到
+public bool leftToggled
+[EnableIf("leftToggled")]
+public int a;        -- 当leftToggled为false时，参数a在inspector中整个都是灰色的
+
+
+在属性或者field中添加contextMenu：
+[CustomContextMenu("", "")]
+public int num;                              -- 这样在面板中num参数附近鼠标右键即可看到自定义的菜单
+
+
+设定参数的显示偏移：   —— Misc ->Indent
+Indent：可以更规范的显示各个参数，尤其是在设定多层级目录结构时，用这个显示出来的效果很方便。默认数值从1开始
+
+设定参数label所占用的width或height： —— Misc ->Label Width
+[LabelWidth(50)]
+public int num;      —— 这样就会显示参数num的label标识(一般都是field或者property自身)所占用的宽度
+
+在设定了图片后除了preview外，还可以直接在当前面板中显示出来：   —— Misc->On Inspector GUI
+[OnInspectorGUI("DrawPreview", append: true)]
+public Texture2D Texture = EditorIcons.OdinInspectorLogo;
+
+private void DrawPreview()
+{
+    if (this.Texture == null) return;
+
+    GUILayout.BeginVertical(GUI.skin.box);
+    GUILayout.Label(this.Texture);
+    GUILayout.EndVertical();
+}
+注意：GUILayout.Label()除了可以显示string的label外，也是支持显示Texture的，即可以将图片绘制出来，
+而不用专门去用GUI.Draw来绘制图片
+
+[OnValueChanged]可以用于任何需要检测参数被改变的情况 —— Misc ->On Value Changed
+
+任何情况下如果需要给某个参数或者propety添加说明提示，都可以使用[PropertyTooltip("")] —— Misc -> Property Tooltip
+
+为参数指定参考示例： —— Misc ->Suffix Label
+[SuffixLabel("ms")]
+public float speed;     —— 添加参数大概可能的示例 ，这个很重要
+
+可以在”Unity->Range“中查找到：
+对于单滑动条：Range(0, 10)，
+PropertyRange(0，10) —— 虽然前面加了”Property“前缀，但其实对于field和property都可以使用
+
+注意：对于”$“这个参数的使用：
+情况一：并不是所有情况都需要关联这个"$"，可查看”Unity->Range“中第三条”Dynamic“这里虽然使用了”Max“，
+             但”Max“前并没有”$“
+
+
+在”Groups -》 Toggle Group“和 ”Type Specifics-》Toggle“中都可以看到Toggle
+
+
+
+
+
+
+
+
+
+
+
+
+
+

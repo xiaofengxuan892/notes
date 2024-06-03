@@ -1,0 +1,437 @@
+调试模式： make debug deploy
+发布模式： make release deploy
+选中Assets/Bundles/Assemblies目录, Ctrl+Shift+M生成MDB(每次更改都需要重新生成)
+
+调试完成后编译release版本dll，在Project内上传
+
+随机数种子
+
+重点Systems:
+游戏物件 Thing
+游戏状态 BattleState
+输入 Input
+关卡时间线 Timeline
+
+
+
+c# BattleService: 
+Assets/Game/Battle/BattleService.cs   
+
+lua BattleManager:
+Assets/Lua/Game/Battle/BattleManager.lua
+
+
+核心问题：
+1.Entitas具体哪些文件、哪些内容会重新生成？？
+2.什么system需要使用“ExecuteSystem”，什么system需要使用“reactiveSystem”？
+比如：这两个system就使用不同的
+EnableAIOnCountDownFinishedSystem : LogicReactiveSystem<LogicArenaEntity>
+CountDownDelayEnableAISystem : LogicExecuteSystem
+DelayExitTurnSystem : LogicExecuteSystem
+StartTurnSystem:LogicExecuteSystem ,每个EnterFrame都会执行，根据_group = contexts.logicArena.GetGroup(TurnMatcher)来获取entity数据
+
+LogicReactiveSystem：
+继承LogicReactiveSystem的脚本中需要有GetTrigger，而且通常都是context.CreateCollector(CountDownFinishedMatcher.Added())，即组件的“Added”操作
+并且CountDownFinishedMatcher通常指代某种component：
+private static readonly IMatcher<LogicArenaEntity> CountDownFinishedMatcher = LogicArenaMatcher.EnableAICountDownFinished;
+由于是Add，因此GetTrigger触发的条件在于“EnableAICountDownFinished”组件的创建时
+
+当目标实体LogicArenaEntity中有新的目标component添加Added时则会触发收集如collector中，
+并且LogicReactiveSystem中还有Filter，用于对目标entity，如LogicArenaEntity进行过滤
+在“OnExecute”方法中得到的目标Entity集合list，即为过滤后的entities
+执行时机：只有在满足collector收集条件，并且通过filter之后的entities，才会真正的在“onExecute”的foreach中执行
+
+LogicExecuteSystem：
+没有filter，没有GetTrigger，但是有特殊的matcher
+每个“EnterFrame”都会执行，通过特殊的matcher：_group = contexts.logicArena.GetGroup(TurnMatcher) 来收集所有满足条件的Entityties
+matcher中通常包含所有满足条件即目标component的entity：
+private static readonly IMatcher<LogicArenaEntity> TurnMatcher = LogicArenaMatcher.AllOf(
+	LogicArenaMatcher.ArenaTurn,
+	LogicArenaMatcher.ArenaTurnId
+);
+格式也较为固定：
+internal class StartTurnSystem : LogicExecuteSystem
+{
+	private static readonly IMatcher<LogicArenaEntity> TurnMatcher = LogicArenaMatcher.AllOf(
+		LogicArenaMatcher.ArenaTurn,
+		LogicArenaMatcher.ArenaTurnId
+	);
+
+	private readonly IGroup<LogicArenaEntity> _group;
+
+	public StartTurnSystem(LogicContexts contexts) : base(contexts) {
+		_group = contexts.logicArena.GetGroup(TurnMatcher);
+	}
+
+	protected override void OnExecute() {
+		var curTime = Contexts.GetClock().GetTime();
+		foreach (var arenaEntity in _group.GetEntities()) {
+		      ......
+		}
+	}
+}
+
+
+#### 竞技场的实体Entity：
+
+1.在“BattleStateInitSystem”中“CreateBattleState”创建了“loginBattleState”实体：
+  var stateEntity = Contexts.logicBattleState.CreateEntity();
+  该实体在创建“StateMachine”时赋值给“StateMachine”的“Entity”，并在后面的状态切换时
+  如“PreparingState”、“FightingState”,一直传递下去
+  这个是“LogicBattleState”实体，和普通的“LogicArena”实体不一样
+注意：这里的BattleStateEntity是SingleEntity
+
+PS:如何可以明确的知道是“SingleEntity”，在创建之初就应该知道吗？
+
+2.PreparingState的BAStateInitializer中，创建队伍的实体：
+var teamEntity = Contexts.logicArena.CreateEntity();
+teamEntity.AddId(Contexts.GetIndependentId());
+teamEntity.AddArenaTeam(camp, members);
+teamEntity.AddArenaTeamFightingActor(-1);
+
+3.FightingState的BAStateInitializer中，创建arenaEntity的实体：
+这里的实体是SingleEntity，作为整体竞技场的数据记录entity
+var arenaEntity = Contexts.logicArena.CreateEntity();
+arenaEntity.AddId(Contexts.GetIndependentId());
+arenaEntity.isArena = true;
+arenaEntity.AddArenaLastTurnId(0);
+arenaEntity.AddArenaStartTime(curTime);
+arenaEntity.AddArenaDuration(duration);
+
+注意：有一个统一管理logicArea实体的容器
+
+4.在进入回合时，在“LaunchArenaSystem”中“ArenaUtils.EnterTurn(Contexts, 1)”时，又创建了一个turnEntity
+var turnEntity = contexts.logicArena.GetEntityWithArenaTurnId(turnId);
+if (null != turnEntity) {
+	contexts.LogError(LogTagDef.ArenaLogTag, "Cannot enter turn twice, id: {0}", turnId);
+	return false;
+}
+........
+turnEntity = contexts.logicArena.CreateEntity();
+turnEntity.AddId(contexts.GetIndependentId());
+turnEntity.AddArenaTurnId(turnId);
+turnEntity.AddArenaTurn(fightingIndex1, fightingIndex2, time, ArenaDef.TurnStartDelayTime, ArenaTurnState.Preparing);
+注意：该实体中不只有上面Aｄｄ的那些属性，该ｅｎｔｉｔｙ具体的属性可以查看左边的文件目录
+
+5.在“EnableAIOnTurnStartedSystem”时根据先后手创建delayEntity：
+private void DelayStartAI(IIdEntity actor, FixedPoint delay) {
+	var curTime = Contexts.GetClock().GetTime();
+	var delayEntity = Contexts.logicArena.CreateEntity();
+	delayEntity.AddEnableAIActor(actor.id.Value);
+	delayEntity.AddEnableAIDelayTime(delay);
+	delayEntity.AddEnableAIStartTime(curTime);
+}
+
+实体的销毁：
+在武将实体AI倒计时结束时，“EnableAIOnCountDownFinishedSystem”开启AI：actor.isIntelligent = true
+protected override bool Filter(LogicArenaEntity entity) {
+	return entity.isEnableAICountDownFinished
+		   && entity.hasEnableAIActor
+		   && entity.hasEnableAIDelayTime
+		   && entity.hasEnableAIStartTime;
+}
+		
+protected override void OnExecute(List<LogicArenaEntity> entities) {
+	foreach (var arenaEntity in entities) {
+		var actorId = arenaEntity.enableAIActor.Value;
+		var actor = Contexts.logicThing.GetEntityWithId(actorId);
+		if (null == actor) {
+			continue;
+		}
+		actor.isIntelligent = true;
+		
+
+		//这里销毁的是AI延时实体：delayEntity，因为entity.isEnableAICountDownFinished = true，之后就用不到了
+		arenaEntity.isDestroyed = true;      //标记之后就会自动销毁掉  —— 但是这里的详细流程还要再看下
+	}
+
+}
+
+
+
+**实体Entity获取方式：**
+获取武将实体数据：var actor = Contexts.logicThing.GetEntityWithId(actorId);
+获取消息实体数据：var thingEntity = Contexts.viewThing.GetEntityWithId(message.EntityId);
+获取竞技场队伍实体数据：var team = contexts.logicArena.GetEntityWithArenaTeam(campFlag);
+获取竞技场回合实体数据：var turnEntity = contexts.logicArena.GetEntityWithArenaTurnId(turnId);
+
+
+
+
+创建武将实体流程：
+1.ThingCardUtils.CreateThingFromCard 来创建GeneralCreateContext或DeviceCreateContext类型的contextA
+2.随之根据该contextA创建“ThingEntity” —— 在ThingFactory中创建
+在这里添加“id, positon,rotation,createTime”等基础属性，
+如果该contextA是CreatureCreateContext类型，如GeneralCreateContext，那么还会给该thingEntity增加“cretature”属性
+如：行为树BehaviorTree，阵营campFlag，战力值等
+PS:
+1.对于campFlag属性，不论是pve中防止卡牌，还是pvp中创建areanaTeam，两者都会在“CreateThingFromCard”附带“CampFlag”属性
+2.对于添加行为树FSM的thingEntity，则在“ThingFactory.CreateThing”末尾执行“SwitchInitialState”，设置thingEntity进入“idle”状态
+thingEntity.Idle(contexts, false)
+
+public static bool Idle(this LogicThingEntity entity, LogicContexts contexts, bool force) {
+	var context = contexts.ObjectPool<IdleStateContext>().Get();
+	context.Force = force;
+	return ChangeState(entity, (int)BehaviourType.Idling, context);
+}
+		
+这个改变thingEntity的state和“BattleStateInitSystem”是不一样的，
+var fsm = new StateMachine(stateEntity);
+fsm.Create(Contexts);
+fsm.AddState((int)BattleStateDef.Preparing, new PreparingState( fsm));
+fsm.AddState((int)BattleStateDef.Fighting, new FightingState( fsm));
+fsm.AddState((int)BattleStateDef.Ended, new EndedState( fsm));
+
+stateEntity.AddBattleState(fsm);
+stateEntity.ChangeState((int)BattleStateDef.Preparing);
+
+
+3.之后根据ThingType，将该thingEntity细致划分为“General”,"Monster", "Bullet", "Device"等。
+并进入对应的generalFactory或其他factory中添加该thingEntity的对应属性
+但注意：不论具体该thingType是哪种类型，都是在原有的thingFactory中创建的thingEntity的补充，即仍然还是同一个thingEntity
+只是根据thingType去对应的factory中再次为该thingEntity添加对应属性
+4.如果该thingType是general，那么在GeneralFactory中会检测“GeneralConf”配置表中是否为该武将配置了AI策略“AIStrategy”
+如果有“AIStrategy”，那么则会为该thingEntity添加“AddAIAgent”，“AddDecisionInterval”等component属性
+
+
+开启isIntelligent后的执行逻辑：
+有一个“AIAgentThinkSystem -》继承自LogicExecuteSystem”，每一帧都会执行，始终在收集所有包含了Intelligent的component的实体
+所以在PVP先手延时结束，开启thingEntity的AI后,即thingEntity.isIntelligent = true，
+那么该AIAgentThinkSystem就会马上执行该entity上的AIAgent.Think方法：
+thingEntity.aIAgent.Agent.Think();
+此时会跑到Behavior3Factory的多个_nodes中—— TryAutoCast已经作为nodes注册到factory，
+BehaviorTree则加载这里的factory，同时把该behaviorTree赋值给AIAgent中，
+当AIAgent开始think时，会依次执行各个node节点中的“Tick”方法，因此“TryAutoCast”的Tick也被执行
+该方法中调用“SkillCastUtils.TryAutoCast”尝试施法，
+SkillCastUtils.TryAutoCast -》TryCastWithAbility -》TrySelectTargetAndCastWithAbility 
+-》TryCastToTargetWithAbility -》thingEntity.Cast(context) 成功切换到“CastState”
+进入到“CastState”的“OnEnter”中，则“CastSkill”开始释放技能：Contexts.logicSkill.CastSkill
+在Contexts.logicSkill.CastSkill方法中创建“LogicSkillEntity”，然后添加component：AddSkillCastContext
+有一个“LogicReactiveSystem” ——》“CastSkillSystem”在收集“SkillCastContext”的实体collector，
+因此当添加AddSkillCastContext后会马上触发“CastSkillSystem.onExecute”执行，
+在该“OnExecute”中通过“ReadAndProcessSkillSequence”读取技能数据，最后也添加了AddSkillCastDuration
+到这里技能施放基本结束
+
+
+施放技能后：
+1.“DetectSkillCastFinishedSystem”每个“EnterFrame”都在执行，检测skillEntity中包含SkillCastContext和SkillCastDuration的实体
+当收集到的_group中包含有entity时则检测该entity的时间
+当发现当前时间超出技能的持续时间时则代表技能施放结束
+此时发送“SkillCastFinishedEvent”事件
+
+2.“ExitCastStateOnFinishedSystem”继承自“LogicEventSystem -》LogicReactiveSystem ”，对IEventContext进行监听，
+当发送“SkillCastFinishedEvent”后，检测符合条件时则退出“casting”，进入“Idle”状态
+
+如此一轮技能释放结束。
+但由于已经开启了AI，因此AIAgentThinkSystem，继承自“LogicExecuteSystem”每帧都会执行，
+只要有符合matcher的entity就会在group中 —— 通过matcher中的noneof来排除“已经关闭的AI component”的实体
+因此“AIAgentThinkSystem”会每帧执行“OnExecute”中的entity
+所以基于这样的原因，在“TryAutoCast”的Tick中会显示“entity.isCastState”，如果已经在“CastState”，那么会直接返回
+
+
+
+
+
+
+卡牌撤退返还费用：
+1.通过generalEntity的id来获取cardEntity：
+var cardEntity = ThingCardUtils.GetCardEntityByActorId(contexts, thingEntity.id.Value);
+
+CardFactory.cs  在最初的CreateGeneralCard时就将cardInfo加入到cardEntity中，
+                并且将“DeploymentCostReturn”作为单独的属性提取出来，因此可以直接使用cardEntity.DeploymentCostReturn来获取
+InitPowerLevelUpSystem.cs          -- 设置stateEntity，同时更新cardEntity
+ThingCardUtils.cs                  -- 根据cardEntity数据创建GeneralCreateContext
+
+创建完GeneralCreateContext后通过“ThingFactory -》CreateThing”来根据“GeneralCreateContext”
+调用“GeneralFactory”中“CreateGeneral”方法创建对应的generalEntity
+GeneralFactory.cs                  -- 根据GeneralCreateContext创建generalEntity
+
+
+InputUtils.cs                      -- 点击武将后通过发送RetrieveEntityByPositionRequest获取武将所有信息
+                                      InputUtils.RetrieveEntityCommonData(Contexts, thingEntity, respond)，这里使用的是generalEntity
+                                      而后通过BattleTouchLogic:HandleClickOnActor -》BuildGeneralInfoContext将战斗端传回的respond信息进行进一步封装
+RevokeCardSystem.cs                -- 撤退费用返还ReturnDeploymentCostAfterRevoked，使用cardEntity的cardDeploymentCostReturn									  
+
+局内升级后，先更新cardEntity，再更新GeneralEntity，最后返回消息到Lua层
+
+
+
+竞技场的实体Entity：
+0.在“BattleStateInitSystem”中“CreateBattleState”创建了“loginBattleState”实体：
+  var stateEntity = Contexts.logicBattleState.CreateEntity();
+  该实体在创建“StateMachine”时赋值给“StateMachine”的“Entity”，并在后面的状态切换时
+  如“PreparingState”、“FightingState”,一直传递下去
+  这个是“LogicBattleState”实体，和普通的“LogicArena”实体不一样
+
+1.PreparingState的BAStateInitializer中，创建队伍的实体：
+var teamEntity = Contexts.logicArena.CreateEntity();
+teamEntity.AddId(Contexts.GetIndependentId());
+teamEntity.AddArenaTeam(camp, members);
+teamEntity.AddArenaTeamFightingActor(-1);
+
+2.FightingState的BAStateInitializer中，创建arenaEntity的实体：
+这里的实体是SingleEntity，作为整体竞技场的数据记录entity
+var arenaEntity = Contexts.logicArena.CreateEntity();
+arenaEntity.AddId(Contexts.GetIndependentId());
+arenaEntity.isArena = true;
+arenaEntity.AddArenaLastTurnId(0);
+arenaEntity.AddArenaStartTime(curTime);
+arenaEntity.AddArenaDuration(duration);
+
+注意：有一个统一管理logicArea实体的容器
+
+3.在进入回合时，在“LaunchArenaSystem”中“ArenaUtils.EnterTurn(Contexts, 1)”时，又创建了一个turnEntity
+var turnEntity = contexts.logicArena.GetEntityWithArenaTurnId(turnId);
+if (null != turnEntity) {
+	contexts.LogError(LogTagDef.ArenaLogTag, "Cannot enter turn twice, id: {0}", turnId);
+	return false;
+}
+........
+turnEntity = contexts.logicArena.CreateEntity();
+turnEntity.AddId(contexts.GetIndependentId());
+turnEntity.AddArenaTurnId(turnId);
+turnEntity.AddArenaTurn(fightingIndex1, fightingIndex2, time, ArenaDef.TurnStartDelayTime, ArenaTurnState.Preparing);
+注意：该实体中不只有上面Aｄｄ的那些属性，该ｅｎｔｉｔｙ具体的属性可以查看左边的文件目录
+
+
+4.在“EnableAIOnTurnStartedSystem”时根据先后手创建delayEntity：
+private void DelayStartAI(IIdEntity actor, FixedPoint delay) {
+	var curTime = Contexts.GetClock().GetTime();
+	var delayEntity = Contexts.logicArena.CreateEntity();
+	delayEntity.AddEnableAIActor(actor.id.Value);
+	delayEntity.AddEnableAIDelayTime(delay);
+	delayEntity.AddEnableAIStartTime(curTime);
+}
+
+实体的销毁：
+在武将实体AI倒计时结束时，“EnableAIOnCountDownFinishedSystem”开启AI：actor.isIntelligent = true
+protected override bool Filter(LogicArenaEntity entity) {
+	return entity.isEnableAICountDownFinished
+		   && entity.hasEnableAIActor
+		   && entity.hasEnableAIDelayTime
+		   && entity.hasEnableAIStartTime;
+}
+		
+protected override void OnExecute(List<LogicArenaEntity> entities) {
+	foreach (var arenaEntity in entities) {
+		var actorId = arenaEntity.enableAIActor.Value;
+		var actor = Contexts.logicThing.GetEntityWithId(actorId);
+		if (null == actor) {
+			continue;
+		}
+		actor.isIntelligent = true;
+		
+		//这里销毁的是AI延时实体：delayEntity，因为entity.isEnableAICountDownFinished = true，之后就用不到了
+		arenaEntity.isDestroyed = true;      //标记之后就会自动销毁掉  —— 但是这里的详细流程还要再看下
+	}
+}
+
+
+
+
+重要：
+获取武将实体数据：var actor = Contexts.logicThing.GetEntityWithId(actorId);
+获取消息实体数据：var thingEntity = Contexts.viewThing.GetEntityWithId(message.EntityId);
+获取竞技场队伍实体数据：var team = contexts.logicArena.GetEntityWithArenaTeam(campFlag);
+获取竞技场回合实体数据：var turnEntity = contexts.logicArena.GetEntityWithArenaTurnId(turnId);
+
+
+
+
+核心问题：
+1.Entitas具体哪些文件、哪些内容会重新生成？？
+2.什么system需要使用“ExecuteSystem”，什么system需要使用“reactiveSystem”？
+比如：这两个system就使用不同的
+EnableAIOnCountDownFinishedSystem : LogicReactiveSystem<LogicArenaEntity>
+CountDownDelayEnableAISystem : LogicExecuteSystem
+DelayExitTurnSystem : LogicExecuteSystem
+
+
+
+问题：
+1.从PreparingState到下一个state：
+ExitPreparingStateSystem，该system继承自“LogicReactiveSystem”，其中的“OnExecute”会一直执行，并不需要手动的驱动
+这里没看懂，要再仔细看下
+从FightingState完毕后到“LauchArenaSystem”,也是通过继承自“LogicReactiveSystem”的LaunchArenaSystem来监听，
+并且在“OnExcute”中也是通过“entities.SingleEntity()”来判断是否进入下一个阶段
+这个“entities.SingleEntity()”到底是如何发挥作用的啊？？？？
+***继承“LogicReactiveSystem”的system会按照顺序依次执行，并非一直在检测执行
+
+
+2.AreaComponent中并没有“isArea”，这个生成的逻辑是怎样的？
+例子一：
+    [LogicArena]
+    public class ArenaComponent : LogicComponent
+    {
+    }
+	
+例子二：EnableAICountDownFinishedComponent
+    [LogicArena]
+    public class EnableAICountDownFinishedComponent : LogicComponent
+    {
+        
+    }
+
+在生成时会自动的生成bool类型的
+    static readonly Battle.Logic.Arena.Component.ArenaComponent arenaComponent = new Battle.Logic.Arena.Component.ArenaComponent();
+
+    public bool isArena {
+        get { return HasComponent(LogicArenaComponentsLookup.Arena); }
+        set {
+            if (value != isArena) {
+                var index = LogicArenaComponentsLookup.Arena;
+                if (value) {
+                    var componentPool = GetComponentPool(index);
+                    var component = componentPool.Count > 0
+                            ? componentPool.Pop()
+                            : arenaComponent;
+
+                    AddComponent(index, component);
+                } else {
+                    RemoveComponent(index);
+                }
+            }
+        }
+    }
+对于内部没有参数，但继承自“LogicComponent”的component，在生成时自动按照bool类型来生成，并且去掉“component”?
+这个生成的逻辑要再测试一下
+
+3.“GetSingleEntity”: 获取集合中唯一的Entity，当集合该目标matcher的entity超出1时则报错
+那么在使用之前其实已经很明确的知道该component是否是唯一的。即该component对应的属性从一开始是否是唯一的
+MatchOne的例子中对于这个“GetSingleEntity”的component添加了前缀“Unique”。但战斗项目中没有
+Entitas.Matcher匹配系统详细是怎样的？这个很重要
+实际调用在：FightingState.SendBattleStartMessage -> BattleStateUtils.GetMonsterProgress
+“var progressEntity = contexts.logicBattleState.GetGroup(MonsterProgressMatcher).GetSingleEntity()”
+这里用到了Matcher以及“GetSingleEntity”
+
+
+4.Component中某个参数前加“[PrimaryEntityIndex]”标记的作用是什么？
+例子一：
+public class ArenaTeamComponent : LogicComponent
+{
+	[PrimaryEntityIndex]
+	public CampFlag Camp; // 队伍阵营
+
+	public List<ulong> Members = new List<ulong>(); // 队伍成员ID列表
+}
+“[PrimaryEntityIndex]”应该是该实体所有component中首要的，可以作为Entity的index的参数
+
+
+5.BattleEventDef.OnArenaEnterTurn = class.get("Battle.Com.Context.Message.Arena.ArenaEnterTurnMessage").MessageId;
+这里通过“class.get("Battle.Com.Context.Message.Arena.ArenaEnterTurnMessage")”得到的“MessageId”应该是恒定不变的吗？
+如果是变化的，那么“BattleModule”中的监听是如何起效的呢？
+BattleModule:OnBattleStart{
+.....
+dispatcher:AddEventListener(Slot(self, self.OnArenaEnterTurn), BattleEventDef.OnArenaEnterTurn)
+.....
+}
+
+lua中的“Broadcast”机制是如何起效的，这个还要再看啊
+
+从战斗层发送message，ArenaEnterTurnMessage，这样的消息到lua层，lua层监听，这个是怎么起效的？？
+发送消息：
+
+
+
+
+

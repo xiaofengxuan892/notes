@@ -1,0 +1,95 @@
+账号：
+gitlab账号：zhugang@sqrush.com   密码：zhugang123456 （客户端和服务器协议仓库账号都是一样的）
+SVN账号：zhugang， 密码：pxR2eQHRSgV8NhxB
+TAPD账号：zhugang@sqrush.com     密码：Zhugang123456
+sftp密码：sqrush!@#
+Unity个人账号：zhugang@sqrush.com， 密码：Zhugang123456
+
+
+配置表的文件夹名字必须为“Config”，打表工具会查找该文件夹下的xlsx文件
+
+
+
+
+git推送本地指定分支到远程仓库指定分支：git push origin 本地分支名:远程分支名
+删除远程仓库的指定分支：git push origin :远程分支名
+使用git flow开启feature功能分支：git flow feature start 分支名
+查看本地所有分支：git branch
+删除本地指定的分支：git branch -d 分支名
+切换到本地的指定分支：git checkout 分支名
+(只有在本地没有该分支，并且远程仓库有该分支时，才会自动在本地创建该分支，并关联起来)
+合并分支时失败，如果要放弃本次合并，则直接使用”git merge --abort“即可
+
+代码常用：
+--- ============================ START: 按钮点击 =======================
+--- ============================ END: 按钮点击 =======================
+
+self.textPrimaryDesc:SetLocalizeId("ID_BATTLE_SOUL_COPY_MISSION_PRIMARY_REWARD_DESC", "100"))
+self.textState:SetLocalizeId(cityStateTipsConfig.CityStateName)   -- 特殊编号，如ID_XXXX_EEDFD_XDJFADSJ_DLFSDE等
+self:GetLocalizedText("ID_COMPONENT_POPUP_TEXT_TITLE")  -- 获取文本内容本身，如果需要对获取到的文本再做其他拼接，
+则需要使用：string.format:
+local equipDesc = self:GetLocalizedText(propertyConf.EquiptName)
+local suit2Desc = suitConf2.PropertyType == 1 and string.formatex("+{0}{1}", suitConf2.PropertyValue, equipDesc)
+		or string.formatex("+{0}%{1}", suitConf2.PropertyValue / kRate, equipDesc)
+self.textSuit2.text = suit2Desc
+
+
+红点便捷配置方式：针对UI必然存在的情况(不会生成item般动态消失)可以直接使用如下配置来添加红点
+{
+	path = "SafeArea/ImageTitle/PanelResource/ResourceGold/ImageIcon/ImageGoldenHandFreeLevelRedPoint",
+	redPointConfId = RedPointDef.RedPointConfId.GOLDEN_HAND_HOME_PAGE,
+	redPointType = RedPointDef.RedPointType.Simple,
+	pos = Vector2(-3, -3)
+},
+
+
+当需要在Odin编辑器中使用“”来标记某些文字时可以使用“\”右划线：
+[ShowInInspector]
+[LabelText("效果增减益类型")]
+[LabelWidth(250)]
+[VerticalGroup("BUFF效果")]
+[EnableIf("IsEditMode")]
+[InfoBox("注意: 设置为正/负面效果可以被\"驱除BUFF效果\"清除, 如果不想受到影响, 请设置为\"无指定\"类型, 如: 被动技能")]
+private zh_BuffEffectGainOrLossType _effectGainOrLossType;
+
+
+直接使用Matcher来获取目标类型的集合group：
+var buffHudGroup = contexts.viewHUD.GetGroup(ViewHUDMatcher.AllOf(
+                ViewHUDMatcher.HUDBuffIcons, ViewHUDMatcher.HUDOwner));
+var buffer = contexts.ListPool<ViewHUDEntity>().Get();
+foreach (var entity in buffHudGroup.GetEntities(buffer)) {
+	if (entity.hUDOwner.Id == ownerId)
+		return entity;
+}
+contexts.ListPool<ViewHUDEntity>().Return(buffer);
+
+
+GM指令：
+开放所有活动：ops openall
+复位服务器时间：rst
+获取服务器时间：gst
+设置服务器时间：sst
+关闭新手引导：pag
+添加所有道具：aai
+通关：rs 101    通关第1章第1节
+开启所有关卡：oas
+所有武将都养成：sg
+添加所有装备：aaeq
+
+
+
+环境安装：http://gitlab.inner.sqrush.com/hera/hera-client/hera-client-project/wikis/2.-%E7%8E%AF%E5%A2%83%E5%AE%89%E8%A3%85
+项目文档：http://gitlab.inner.sqrush.com/hera/hera-client/hera-client-project/wikis/3.-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%B7%A5%E7%A8%8B%E4%B8%8B%E8%BD%BD
+
+
+git 地址：
+协议proto: http://gitlab.sqrush.com/hera/hera_clientproto
+csv: http://gitlab.sqrush.com/hera/hera_csv
+hera client project：http://gitlab.inner.sqrush.com/hera/hera-client/hera-client-project
+ECS框架：https://github.com/sschmid/Entitas-CSharp
+
+
+
+
+git flow流程：https://www.git-tower.com/learn/git/ebook/cn/command-line/advanced-topics/git-flow
+
