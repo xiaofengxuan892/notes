@@ -743,19 +743,85 @@ public static extern void Foo();
 
 
 
-### Linq语句的作用：
+### LinQ语句的作用：
 
-#### 数组用到的Linq方法：
+==不会导致大量GC，可以正常使用==的LinQ方法：**First，FirstOrDefault**
 
-遍历数组中的元素，获取第一个满足指定条件的元素“array.First()”：
+- 遍历数组中的元素，获取第一个满足指定条件的元素“array.First()”：
+
+  ```c#
+  string[] strArr = {"ac", "dasfdsa", "dfjasfldas", "hello, world"};
+  string target = strArr.First(a => a.Substring(0, 2) == "he");
+  Debug.Log($"final result: {target}");
+  ```
+
+  运行结果：<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240325223918364.png" alt="image-20240325223918364" style="zoom:80%;" />
+
+==会导致大量GC的LinQ方法==：**ToList、ToArray、Select、SelectMany、Where、OrderBy、GroupBy、Join**
+
+#### 非LinQ语句且常用的方法Sort或Find或IndexOf：
+
+针对List或Array类型，可以==常用“Find”或“Sort”方法(属于List或Array类型自身的方法，与LinQ无关)==，但其作用与LinQ中的“First、FirstOrDefault”，“OrderBy”作用类似。
+
+**案例1**：对整数或字符串列表排序。==默认排序通常按照从小到大排列==
 
 ```c#
-string[] strArr = {"ac", "dasfdsa", "dfjasfldas", "hello, world"};
-string target = strArr.First(a => a.Substring(0, 2) == "he");
-Debug.Log($"final result: {target}");
+List<int> numbers = new List<int>(5, 3, 8, 1, 2);
+numbers.Sort();      //默认为升序排列
+//输出结果：1, 2, 3, 5, 8
+
+List<string> names = new List<string> { "Alice", "Bob", "Charlie", "David" };
+names.Sort();     //按字母顺序升序排列
+//输出结果：Alice, Bob, Charlie, David
 ```
 
-运行结果：<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240325223918364.png" alt="image-20240325223918364" style="zoom:80%;" />
+**案例2**：使用自定义排序
+
+```c#
+List<string> names = new List<string> { "Alice", "Bob", "Charlie", "David" };
+names.Sort((x, y) => x.Length.CompareTo(y.Length));   //按字符串长度升序排列
+//输出结果：Bob, Alice, David, Charlie
+```
+
+==注意：当需要按照元素中的“bool参数”进行排列时==
+
+```c#
+public class MyItem{
+    public string name {get; set;}
+    public bool IsActive {get; set;}
+}
+..........
+    
+List<MyItem> items = new List<MyItem>{
+    new MyItem { name = "Item1", IsActive = false };
+    new MyItem { name = "Item2", IsActive = true };
+    new MyItem { name = "Item3", IsActive = true };
+}
+//将列表中的元素按照bool参数排序，“false”排在前面，“true”排在后面
+items.Sort((x, y) => x.IsActive.CompareTo(y.IsActive));
+```
+
+==如果需要将元素按照bool值：“true”排在前面，“false”排在后面，可调换“x, y”顺序即可==，如
+
+```c#
+items.Sort((x, y) => y.IsActive.CompareTo(x.IsActive));
+```
+
+**List的实例化方法IndexOf**：
+
+该方法在List中查找指定元素并返回其索引值，**如果未找到则返回“-1”**。
+
+**注意**：该方法支持在指定范围内查找该元素。如：
+
+- IndexOf(T item)：在整个List集合中查找该元素
+- IndexOf(T item, int startIndex)：从“startIndex”开始查找元素item的位置
+- IndexOf(T item, int startIndex, int count)：==从“startIndex”开始的“count”个元素范围内==查找元素item
+
+无论是否设定查找的起始范围，**返回的索引值都是以List本身的索引编号为准**，而非“设定范围后的重新编号的索引”
+
+
+
+
 
 
 

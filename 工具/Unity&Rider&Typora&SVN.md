@@ -18,6 +18,13 @@
 
 
 
+##### 关闭Unity的自动刷新
+
+针对Unity2021及以上版本，关闭“自动刷新”按钮在此界面：
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240606092048773.png" alt="image-20240606092048773" style="zoom:80%;" />
+
+
+
 **3.经常遇到不同的项目使用各个版本的Unity Version,可以都通过Unity Hub来下载**，<font color=red>**不需要单独去Unity官网下载**</font>：
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20221120210551819.png" alt="image-20221120210551819" style="zoom: 80%;" />
@@ -159,6 +166,32 @@ Setting -> Editor -> General ->Editor Tabs：
 在“偏好设置 -》通用”中点击“打开高级设置”，选择“conf.user.json”文件，在“keyBinding”中添加“Highlight”即可：
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240424172708041.png" alt="image-20240424172708041" style="zoom:67%;" />
+
+
+
+#### SVN：
+
+##### 查看下载到本地的SVN项目当前的版本号
+
+**详细说明**：该需求主要针对部分情况，需要下载SVN指定版本号的内容到本地用于校验或参考，因此需要设定“Revision”。而不需要该项目在SVN上的最新版本
+
+**步骤**：
+
+1).由于后续操作需要用到SVN命令行，因此在安装SVN时需要勾选以下选项：
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240612105420161.png" alt="image-20240612105420161" style="zoom:80%;" />
+
+**PS**：若SVN已安装，则重新点击该exe文件并选择“Modify”安装该工具即可
+
+**检测SVN命令工具是否安装成功**：Win + R 打开cmd窗口，并输入“svn --version”，若显示如下则代表安装成功：
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240612105741702.png" alt="image-20240612105741702" style="zoom:80%;" />
+
+**2)**.打开SVN项目的本地目录，按住Shift键 + 鼠标右键 打开Powershell窗口，并输入指定“svn info”
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240612105849473.png" alt="image-20240612105849473" style="zoom:80%;" />
+
+其中“Revision”即代表该项目在本地的当前版本
 
 
 

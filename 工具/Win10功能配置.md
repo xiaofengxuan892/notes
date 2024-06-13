@@ -129,9 +129,7 @@
 <img src="../Picture/image-20221206203036325.png" alt="image-20221206203036325" style="zoom: 50%;" />
 
 打开“按流量计费的连接”按钮即可：
-<img src="../Picture/image-20221206203125454.png" alt="image-20221206203125454" style="zoom: 50%;" />
-
-
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20221206203125454.png" alt="image-20221206203125454" style="zoom: 50%;" />
 
 
 
@@ -151,7 +149,7 @@
 
 点击“**<font color=red>Ctrl + Alt + Delete</font>**”选择“任务管理器”，点击菜单栏“文件 -》 运行新任务”：
 
-<img src="../Picture/image-20230103144354698.png" alt="image-20230103144354698" style="zoom:80%;" />
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20230103144354698.png" alt="image-20230103144354698" style="zoom:80%;" />
 
 输入“explorer”，**<font color=red>勾选“以系统管理权限创建此任务”</font>**，然后点击“确定”即可重启“explorer.exe”
 
@@ -254,7 +252,7 @@ Win10桌面鼠标右键选择“个性化” ——》锁屏界面 ——》屏�
 
 **针对“触摸板Elan Service”**：
 
-在“Win + R”中输入“**<font color=red>services.msc</font>**”打开服务窗口，查找“Elan Service”服务，鼠标右键打开“属性”窗口，**<font color=blue>将其“启动类型”设置为“禁用”</font>**即可
+在“Win + R”中输入“**<font color=red>services.msc</font>**”打开服务窗口，查找“Elan Service”服务，鼠标右键打开“属性”窗口，**将其“启动类型”设置为“禁用”**即可
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20230422093023591.png" alt="image-20230422093023591" style="zoom:67%;" />
 
@@ -269,3 +267,18 @@ Win10桌面鼠标右键选择“个性化” ——》锁屏界面 ——》屏�
 先点击上方的“更改当前不可用的设置”，之后勾选下方“休眠”选项即可
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20230805163938983.png" alt="image-20230805163938983" style="zoom:80%;" />
+
+
+
+### 11.Win10右下角只显示时间，不显示日期
+
+**解决方法**：在“任务栏”中鼠标右键选择“任务栏设置”
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240606090923067.png" alt="image-20240606090923067" style="zoom:80%;" />
+
+关闭“小任务栏”按钮即可：
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240606090958410.png" alt="image-20240606090958410" style="zoom:80%;" /> 
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240606091305466.png" alt="image-20240606091305466" style="zoom:80%;" />
+

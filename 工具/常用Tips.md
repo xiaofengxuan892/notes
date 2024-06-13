@@ -304,9 +304,15 @@ Clash在运行时会**<font color=red>自动开启</font>**Win10的网络代理�
 
 ![image-20231221101448254](https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20231221101448254.png)
 
+#### 18.设置Chrome为深色模式
 
+安装“Dark Reader”插件(针对普通页面) + “设置/外观”中调整模式为“深色”(针对空白页签)
 
+#### 19.查询电脑磁盘是HDD还是SSD
 
+打开“任务管理器 -》性能”，在左侧各个磁盘中会标注其为SSD或HHD
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240612175315376.png" alt="image-20240612175315376" style="zoom:80%;" />
 
 
 
