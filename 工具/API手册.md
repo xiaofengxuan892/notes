@@ -759,9 +759,11 @@ public static extern void Foo();
 
 ==会导致大量GC的LinQ方法==：**ToList、ToArray、Select、SelectMany、Where、OrderBy、GroupBy、Join**
 
-#### 非LinQ语句且常用的方法Sort或Find或IndexOf：
+#### 非LinQ语句且常用的方法Sort或Find或IndexOf或Exists：
 
 针对List或Array类型，可以==常用“Find”或“Sort”方法(属于List或Array类型自身的方法，与LinQ无关)==，但其作用与LinQ中的“First、FirstOrDefault”，“OrderBy”作用类似。
+
+##### Sort相关方法
 
 **案例1**：对整数或字符串列表排序。==默认排序通常按照从小到大排列==
 
@@ -783,7 +785,7 @@ names.Sort((x, y) => x.Length.CompareTo(y.Length));   //按字符串长度升序
 //输出结果：Bob, Alice, David, Charlie
 ```
 
-==注意：当需要按照元素中的“bool参数”进行排列时==
+==案例3：当需要按照元素中的“bool参数”进行排列时==
 
 ```c#
 public class MyItem{
@@ -807,7 +809,29 @@ items.Sort((x, y) => x.IsActive.CompareTo(y.IsActive));
 items.Sort((x, y) => y.IsActive.CompareTo(x.IsActive));
 ```
 
-**List的实例化方法IndexOf**：
+案例4：当元素中==包含“可能为null”的引用类型参数和其他类型参数==时
+
+```c#
+Class MyItem{
+    public object obj {get; set;}
+    public int num {get; set;}
+}
+......
+List<MyItem> items = new List<MyItem>{
+    new MyItem {obj = null, num = 1 };
+    new MyItem {obj = new Object(), num = 6 };
+    new MyItem {obj = new Object(), num = 2 };
+}
+items.Sort((x, y) => {
+    //先按照obj排序：非null的排在前面，null的排在后面
+    if(x.obj == null && y.obj != null) return 1;
+    if(x.obj != null && y.obj == null) return -1;
+    //再按照num排序：数值大的排在前面
+    return y.num.CompareTo(x.num);
+} )
+```
+
+##### IndexOf：
 
 该方法在List中查找指定元素并返回其索引值，**如果未找到则返回“-1”**。
 
@@ -819,9 +843,31 @@ items.Sort((x, y) => y.IsActive.CompareTo(x.IsActive));
 
 无论是否设定查找的起始范围，**返回的索引值都是以List本身的索引编号为准**，而非“设定范围后的重新编号的索引”
 
+##### Exist：
 
+该方法会在List中查找满足指定条件的元素，返回bool值
 
+```c#
+Class MyItem{
+    public object obj {get; set;}
+    public int num {get; set;}
+}
+......
+List<MyItem> items = new List<MyItem>{
+    new MyItem {obj = null, num = 1 };
+    new MyItem {obj = new Object(), num = 6 };
+    new MyItem {obj = new Object(), num = 2 };
+}
 
+//检测list集合中是否有元素的num参数>2，若有则返回true，否则返回false
+items.Exists(temp => temp.num > 2); 
+```
+
+##### RemoveAll, FindAll：
+
+移除List中所有指定元素：`mList.RemoveAll(m => m.Id == targetId)`
+
+找到满足指定要求的所有元素，返回值为“List<T>”：`mList.FindAll(m => m % 2 == 0)`
 
 
 

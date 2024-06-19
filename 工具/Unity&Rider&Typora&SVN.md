@@ -143,6 +143,14 @@ Setting -> Editor -> General ->Editor Tabs：
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240424225407783.png" alt="image-20240424225407783" style="zoom:67%;" />
 
+##### 修改脚本编辑窗口中代码的字体大小
+
+菜单栏“Setting -> Editor -> Color Scheme -> Color Scheme Font”，调整Size即可
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240614102229003.png" alt="image-20240614102229003" style="zoom: 67%;" />
+
+
+
 
 
 #### Typora：
