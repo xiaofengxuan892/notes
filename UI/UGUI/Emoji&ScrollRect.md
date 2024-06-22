@@ -65,6 +65,10 @@ IEnumerator TyperFunc(string words)
 
 
 
+#### 滑动列表ScrollRect：
+
+当需要监听滑动事件时可使用ScrollRect.onValueChanged.AddListener(==UnityAction<Vector2> action==)，其中==Vector2代表滑动条的数值(x, y)，范围均在“[0, 1]”之间==，相当于**normalizedPosition**
+
 
 
 
