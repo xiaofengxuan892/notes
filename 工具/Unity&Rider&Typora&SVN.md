@@ -175,6 +175,12 @@ Setting -> Editor -> General ->Editor Tabs：
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240424172708041.png" alt="image-20240424172708041" style="zoom:67%;" />
 
+##### 图片换行显示
+
+默认换行时，行之间的间隔通常较大，因此可同时按住Shift键并换行，此时间距较紧凑
+
+
+
 
 
 #### SVN：

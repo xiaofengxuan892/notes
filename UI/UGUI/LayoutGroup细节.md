@@ -270,7 +270,7 @@ LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform)
 
 **<font color=red>由于“Content Size Fitter”使用preferredSize设置RectTransform后并不会马上生效，必须要等一帧</font>**
 
-因此这里可以使用<font color=blue>**“LayoutRebuilder.ForceRebuildLayoutImmediate”在当前帧对该Text强制重绘制，这样可以获取到Text的正确size**</font>
+因此这里可以使用**“LayoutRebuilder.ForceRebuildLayoutImmediate”在当前帧对该Text强制重绘制，这样可以获取到Text的正确size**
 
 ```c#
 Text mText = GameObject.Find("Text").GetComponent<Text>();
