@@ -69,6 +69,53 @@
 
 #### Rider:
 
+##### 激活码：
+
+“==一键激活==”工具在“A-KEY”文件夹内，支持==Jetbrains全家桶的激活==
+
+
+
+##### 调整代码字体的大小：
+
+Setting菜单：Editor -》 Font，可调整代码编辑窗口的字体大小
+
+
+
+##### 断点调试快捷键：
+
+==F5==：跳转到下一个断点处， ==F11==：跳转到本代码的内部实现逻辑中，==Shift + F11==：跳出当前的方法体，到该方法体的外部
+
+==F10==：逐行执行代码(根据代码逻辑来定，如为null，则其内部代码不会执行，此时同样不会断点到该处代码)
+
+
+
+##### 安装新版Rider后无法打开，需彻底卸载旧版
+
+部分情况需要更换Rider版本，但在安装新版的Rider后始终无法打开，表现为：点击Rider后没反应或Rider图标一闪而过
+
+此时需要将旧版本的Rider彻底卸载后，再重新安装新版Rider
+
+==彻底卸载Rider的方法==：
+
+1.卸载Rider应用程序：控制面板 -》选中Rider -》卸载
+
+2.==删除Rider的残留数据==：
+
+- **注册表数据**：“Win + R”输入“regedit”，**在“HKEY_CURRENT_USER\SOFTWARE”路径下查找“JetBrains”**，直接删除该文件夹
+
+- **删除以下路径下的文件数据**：
+
+  ```
+  C:\user\${用户名称}\riderProjects\
+  C:\Users\${用户名称}\AppData\Roaming\JetBrains
+  C:\Users\Public\.jetbrains
+  
+  C:\Program Files\JetBrains
+  C:\ProgramData\Microsoft\Windows\Start Menu\Programs\JetBrains\
+  ```
+
+
+
 ##### 在使用Rider时遇到右上角没有“Attach to Unity Editor”选项，无法调试断点
 
 **解决办法**：在“File->Setting->Plugins”中重新安装或启用"Unity Support"，并保存重启Rider即可
@@ -148,8 +195,6 @@ Setting -> Editor -> General ->Editor Tabs：
 菜单栏“Setting -> Editor -> Color Scheme -> Color Scheme Font”，调整Size即可
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240614102229003.png" alt="image-20240614102229003" style="zoom: 67%;" />
-
-
 
 
 
