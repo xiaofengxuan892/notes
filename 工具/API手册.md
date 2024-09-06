@@ -1124,6 +1124,25 @@ public int GetNum(){
 
 
 
+##### “?.”和“??”的应用案例：
+
+```c#
+var level = DataCenterSys.Instance.CurPlayerData?.Level ?? 0;
+```
+
+**解析**：以上代码中使用“?.”  —— 空条件运算符，和“??” —— 空合并运算符，可以极大的简化代码，提升代码整体的美观
+
+**“?.”作用在于“安全的访问对象的属性”**:
+`DataCenterSys.Instance.CurPlayerData?.Level`，仅在“CurPlayerData”非null时才会访问其“Level”参数，
+并且：==当CurPlayerData为null，本语句的值为“null”==，因此该语句只有两个返回结果：
+1.CurPlayerData为null —— 返回null；
+2.CurPlayerData非null —— 返回CurPlayerData.Level对应的数值
+
+**“??”在前面的对象或属性为null时提供另一个默认值**:
+当前面数值为null时，提供一个默认值。以上代码中由于`DataCenterSys.Instance.CurPlayerData?.Level`可能为null，因此使用“??”提供一个默认值
+
+
+
 ### 反斜杠`"\"`和正斜杠`"/"`：
 
 由于在代码中`'\'`有“转义字符”的含义，因此如果需要在代码中替换“正斜杠”和“反斜杠”：

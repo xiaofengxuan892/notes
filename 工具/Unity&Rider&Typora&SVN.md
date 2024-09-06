@@ -220,6 +220,19 @@ Setting -> Editor -> General ->Editor Tabs：
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240424172708041.png" alt="image-20240424172708041" style="zoom:67%;" />
 
+##### 设置图片靠左对齐
+
+当在文本中插入图片时，默认该图片居中对齐，可在对应的“**主题文件 —— xx.css**”文件==末尾==加上：
+
+```
+p .md-image:only-child{
+    width: auto;
+    text-align: left;
+}
+```
+
+之后保存该文件并重启Typora即可
+
 ##### 图片或文字换行显示
 
 默认换行时，行之间的间隔通常较大，因此可同时按住Shift键并换行，此时间距较紧凑

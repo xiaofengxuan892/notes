@@ -314,7 +314,9 @@ Clash在运行时会**<font color=red>自动开启</font>**Win10的网络代理�
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240612175315376.png" alt="image-20240612175315376" style="zoom:80%;" />
 
+#### 20.Earthworm
 
+学习英语的绝佳平台：https://earthworm.cuixueshe.com/course-pack
 
 
 
@@ -343,10 +345,6 @@ GitHub开源工程，**<font color=red>非常的好用，显示效果惊艳</fon
 #### 2.KoodoReader
 
 在Windows上看电子书的软件，效果非常好，支持中英文等多种语言。GitHub开源工程
-
-#### 3.MacType
-
-GitHub地址：https://github.com/snowie2000/mactype，优化Windows上的字体显示效果，支持多种类型切换
 
 #### 4.Library Genesis
 
