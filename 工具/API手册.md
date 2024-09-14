@@ -1130,7 +1130,7 @@ public int GetNum(){
 var level = DataCenterSys.Instance.CurPlayerData?.Level ?? 0;
 ```
 
-**解析**：以上代码中使用“?.”  —— 空条件运算符，和“??” —— 空合并运算符，可以极大的简化代码，提升代码整体的美观
+**解析**：以上代码中使用“?.”  —— 空条件运算符，和“??” —— 空合并运算符，可以**极大的简化代码，提升代码美观度**
 
 **“?.”作用在于“安全的访问对象的属性”**:
 `DataCenterSys.Instance.CurPlayerData?.Level`，仅在“CurPlayerData”非null时才会访问其“Level”参数，
