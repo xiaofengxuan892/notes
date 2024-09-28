@@ -318,6 +318,16 @@ Clash在运行时会**<font color=red>自动开启</font>**Win10的网络代理�
 
 学习英语的绝佳平台：https://earthworm.cuixueshe.com/course-pack
 
+#### 21.UU路由器插件
+
+在RT-AC68U路由器上安装UU插件时，安装进度到99%失败，可能导致的原因是：
+1.**路由器磁盘空间已满**：查看存储空间，若空间不足，可尝试卸载部分非必要插件
+2.**DNS解析异常**：该情况较为特殊。路由器在联网时默认会使用从宽带ISP提供的DNS，在大多情况下，所有连接到该网络的设备均可正常上网。但==宽带ISP提供的DNS会经常变换==，在安装“UU插件”时，如果获取到的DNS异常或无法被解析则会出现“安装失败”的情况
+**解决办法**：在==路由器后台中指定DNS服务器==：
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240928172401325.png" alt="image-20240928172401325" style="zoom:80%;" /><img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20240928172537958.png" alt="image-20240928172537958" style="zoom:80%;" />
+
+在DNS列表中指定其他DNS并应用即可
+
 
 
 ### 薅羊毛专区：
