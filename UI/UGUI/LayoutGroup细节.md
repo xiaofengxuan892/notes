@@ -111,19 +111,39 @@ end
 
 ## Layout Element:
 
+### 无需代码，文字背景随文字内容自适应
 
+UI结构布局如下：
+1.“HLayout”挂载“Horizontal Layout Group”和“Content Size Fitter”组件，并设置“Horizontal Fit”为“Preferred Size”
+2."ImageTextBg"随着“文字内容TextNum”自动调整宽度，作为文字的底板存在。因此为其添加“Layout Element”组件，并勾选“Ignore Layout”，同时调整其Anchor随着“HLayout”自动适配(比HLayout的"Preferred Size"稍向两边延展些)
+3.“TextNum”添加“Content Size Fitter”组件，并设置“Horizontal Fit”为“Preferred Size”
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241008175716568.png" alt="image-20241008175716568" style="zoom:80%;" />
 
+注意：**当频繁修改文本内容时，其可能并不会马上刷新“HLayout”的宽度**，因此可在设置文本后调用==“LayoutRebuilder.ForceRebuildLayoutImmediate”方法强制刷新“HLayout”的RectTransform==
 
+```c#
+private int num = 1;
+void Update()
+{
+    if (Input.GetMouseButtonDown(0))
+    {
+        num *= 10;
+        RefreshText(num.ToString());
+    }
+}
 
+void RefreshText(string str)
+{
+    var textGo = GameObject.Find("TextNum");
+    textGo.GetComponent<Text>().text = $"{str}";
+    var hlayoutGo = GameObject.Find("HLayout");
+    var hlayoutRectTrans = hlayoutGo.GetComponent<RectTransform>();
+    LayoutRebuilder.ForceRebuildLayoutImmediate(hlayoutRectTrans);
+}
+```
 
-
-
-
-
-
-
-
-
+运行效果：当为“TextNum”赋值时，底板“ImageTextBg”自动调整Width，适应当前文本内容
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241008180549431.png" alt=" " style="zoom:80%;" /> <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241008180618462.png" alt="image-20241008180618462" style="zoom:80%;" />
 
 
 
