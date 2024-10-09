@@ -111,7 +111,7 @@ end
 
 ## Layout Element:
 
-### 无需代码，文字背景随文字内容自适应
+### 无需代码，实现“文字背景”随“文字内容”自适应
 
 UI结构布局如下：
 1.“HLayout”挂载“Horizontal Layout Group”和“Content Size Fitter”组件，并设置“Horizontal Fit”为“Preferred Size”
