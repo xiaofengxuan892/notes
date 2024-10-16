@@ -2,7 +2,7 @@
 
 
 
-UGUI自带的“Outline组件”会极大增加顶点数，且会打断合批，因此==基于Shader实现描边功能==
+UGUI自带的“Outline组件”会极大增加顶点数(是原有的5倍)，且会打断合批，因此==基于Shader实现描边功能==
 
 实现过程主要分成两部分：
 
@@ -533,12 +533,27 @@ Shader "Unlit/XTextOutline"
 
 
 
+#### 优化结果：
+
 以上两个脚本经过实际测试，可以很好的实现“描边效果”，顶点数量也极少，可对DC友好
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241009200105198.png" alt="image-20241009200105198" style="zoom:80%;" />
 
 ![image-20241009200051050](https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241009200051050.png)
 
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241009200239161.png" alt="image-20241009200239161" style="zoom:80%;" />
+
+同时附上==单个Text在分别添加“UGUI自带的Outline组件”和“XTextOutline组件”后的Vertices和Indices==区别：
+单个Text原本的Vertices和Indices：
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241010101823205.png" alt="image-20241010101823205" style="zoom:80%;" />
+添加“Outline组件”后的Vertices和Indices：
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241010101912063.png" alt="image-20241010101912063" style="zoom:80%;" />
+添加“XTextOutline组件”后的Vertices和Indices：
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241010102017838.png" alt="image-20241010102017838" style="zoom:80%;" />
+由此可见，“XTextOutline组件”对Vertices和Indices有显著降低效果
+
+
+
+且测试后发现该“XTextOutline组件”对**"Mask、RectMask2D"均有很好的遮罩裁切效果**
 
 
 
