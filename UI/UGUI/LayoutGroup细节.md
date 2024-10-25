@@ -264,11 +264,20 @@ LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform)
 
 
 
-
-
 ## Content Size Fitter:
 
-用于改变transform物体的size大小。当用于”LayoutGroup“时，由于width/height被设定为preferred值，所以layoutGroup中的”child alignment“， ”child force expand“在设定各个数值时效果基本都是一样的。
+该组件的重要作用：
+1.当该组件所挂载的GameObject没有子节点时，如Text或Image，此时则通常获取该Text或Image在“水平或垂直方向”的preferredWidth/preferredHeight，并设置自身RectTransform的width或height。
+注意：==其对“Image组件”同样有效，其会获取该Image当前赋值的“Sprite”的“Native Width/Height”==来设置自身RectTrans的数值
+
+2.当该组件所挂载的GameObject有子节点时，则通常配合HorizontalLayout或VerticalLayout一起使用。
+注意：默认情况下，"xxLayout + ContentSizeFitter"组合会获取子节点的Width/height总和。但有些情况子节点中包含Text，且**Text组件的文本内容会实时变化**。若给子节点Text也添加“ContentSizeFitter组件”，则两者可能会冲突，在UI刷新上没有那么即时
+**解决方法**：此时可打开==xxLayout的“Control Child Size”==即可。该==参数会实时获取子节点中Text或Image的preferredWidth/preferredHeight==，**并不需要给子节点单独添加“ContentSizeFitter组件”**
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241017104738151.png" alt="image-20241017104738151" style="zoom:80%;" />
+
+3.当用于”LayoutGroup“时，由于xxLayout的width/height被设定为preferred值，所以无论如何调整layoutGroup中的”**child alignment**“， ”**child force expand**“，其效果基本都是一样的。
+
+
 
 ### 实用场景1：content与scroll滑动区域设置调整
 
