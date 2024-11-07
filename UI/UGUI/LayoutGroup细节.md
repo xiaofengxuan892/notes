@@ -114,12 +114,27 @@ end
 ### 无需代码，实现“文字背景”随“文字内容”自适应
 
 UI结构布局如下：
-1.“HLayout”挂载“Horizontal Layout Group”和“Content Size Fitter”组件，并设置“Horizontal Fit”为“Preferred Size”
-2."ImageTextBg"随着“文字内容TextNum”自动调整宽度，作为文字的底板存在。因此为其添加“Layout Element”组件，并勾选“Ignore Layout”，同时调整其Anchor随着“HLayout”自动适配(比HLayout的"Preferred Size"稍向两边延展些)
-3.“TextNum”添加“Content Size Fitter”组件，并设置“Horizontal Fit”为“Preferred Size”
+
+**1**.“HLayout”挂载“Horizontal Layout Group”和“Content Size Fitter”组件
+
+- **“Horizontal Layout Group”组件**：==开启“Control Child Size”的“Width”和“Height”==，该属性会控制layout下所有子节点的宽高，将其调整至preferredWidth/preferredHeight，无法再手动更改子节点的“rect.width/height”
+- **“Content Size Fitter”组件**：==调整“Horizontal Fit”和“Vertical Fit”为“Preferred Size”==。该组件用于调整本HLayout节点自身的“RectTransform.Width/height”，以方便其下的子节点“背景图片”随着本HLayout的宽高自适应调整
+
+<img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241106142339357.png" alt="image-20241106142339357" style="zoom:80%;" />
+
+**2**.在HLayout节点下添加“ImageTextBg —— 文字背景图片”和“TextNum —— 文字本身”两个节点
+
 <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241008175716568.png" alt="image-20241008175716568" style="zoom:80%;" />
 
-注意：**当频繁修改文本内容时，其可能并不会马上刷新“HLayout”的宽度**，因此可在设置文本后调用==“LayoutRebuilder.ForceRebuildLayoutImmediate”方法强制刷新“HLayout”的RectTransform==
+- **ImageBg节点**：作为文字的背景图片，添加“LayoutElement”组件，并==勾选"Ignore Layout"==
+  <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241106142717596.png" alt="image-20241106142717596" style="zoom:80%;" />
+  同时==调整RectTransform适配==：
+  <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241106142803272.png" alt="image-20241106142803272" style="zoom:80%;" />
+  **后期可根据效果调整边缘的差值，但适配方式需要保持不变**
+- **TextNum节点**：文字内容。当为该文本动态赋值后，由于HLayout已开启“Control Child Size”，因此会自动调整本节点的“Width/Height”，HLayout自身的Width/Height也会自动修改，而ImageBg由于适配方式也会自动调整其自身的Width/Height。TextNum节点自身的RectTranform无法手动修改
+  <img src="https://gitee.com/kakaix892/image-host/raw/main/Typora/image-20241106143220637.png" alt="image-20241106143220637" style="zoom:80%;" />
+
+**PS**：**如果修改文本内容后，没有马上刷新“HLayout”的宽度**，可调用==“LayoutRebuilder.ForceRebuildLayoutImmediate”方法强制刷新“HLayout”的RectTransform==强制刷新布局
 
 ```c#
 private int num = 1;
